@@ -12,14 +12,14 @@ RUN apt-get install -y \
 	mc
 
 #install nginx
-#ADD resources/nginx/nginx_signing.key /tmp/nginx_signing.key
-#RUN apt-key add nginx_signing.key \
-#	&& rm /tmp/nginx_signing.key \
-#	&& echo "deb http://nginx.org/packages/ubuntu/ xenial nginx" >> /etc/apt/sources.list.d/nginx.list \
-#	&& echo "deb-src http://nginx.org/packages/ubuntu/ xenial nginx" >> /etc/apt/sources.list.d/nginx.list \
-#	&& apt-get update \
-#	&& apt-get install -y nginx
-#ADD resources/nginx/nginx.conf /etc/nginx/nginx.conf
+ADD resources/nginx/nginx_signing.key /tmp/nginx_signing.key
+RUN apt-key add nginx_signing.key \
+	&& rm /tmp/nginx_signing.key \
+	&& echo "deb http://nginx.org/packages/ubuntu/ xenial nginx" >> /etc/apt/sources.list.d/nginx.list \
+	&& echo "deb-src http://nginx.org/packages/ubuntu/ xenial nginx" >> /etc/apt/sources.list.d/nginx.list \
+	&& apt-get update \
+	&& apt-get install -y nginx
+ADD resources/nginx/nginx.conf /etc/nginx/nginx.conf
 
 #install postgresql
 #ADD resources/postgresql/ACCC4CF8.asc /tmp/ACCC4CF8.asc
@@ -32,7 +32,7 @@ RUN apt-get install -y \
 #install php7
 RUN apt-get update \
 	&& apt-get install -y php7.0 php7.0-xml
-#ADD resources/php/nginx.conf /etc/nginx/nginx.conf
+ADD resources/php/www.conf /etc/php/7.0/fpm/pool.d/www.conf
 
 #install composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
@@ -43,3 +43,5 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 #create user system
 RUN groupadd -f -g 1000 user \
 	&& useradd -m -g user -u 1000 user
+
+EXPOSE 80
