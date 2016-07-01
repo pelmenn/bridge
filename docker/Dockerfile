@@ -4,11 +4,10 @@ WORKDIR /tmp
 
 RUN apt-get update
 
-#install other tools
+#install tools
 RUN apt-get install -y \
 	curl \
 	wget \
-	sudo \
 	mc
 
 #install nginx
@@ -21,6 +20,14 @@ RUN apt-key add nginx_signing.key \
 	&& apt-get install -y nginx
 ADD resources/nginx/nginx.conf /etc/nginx/nginx.conf
 
+#install php7
+RUN apt-get install -y php7.0 php7.0-xml
+ADD resources/php/www.conf /etc/php/7.0/fpm/pool.d/www.conf
+RUN /etc/init.d/php7.0-fpm start
+
+#install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/
+
 #install postgresql
 #ADD resources/postgresql/ACCC4CF8.asc /tmp/ACCC4CF8.asc
 #RUN apt-key add ACCC4CF8.asc \
@@ -29,19 +36,15 @@ ADD resources/nginx/nginx.conf /etc/nginx/nginx.conf
 #	&& apt-get update \
 #	&& apt-get install -y postgresql-9.4
 
-#install php7
-RUN apt-get update \
-	&& apt-get install -y php7.0 php7.0-xml
-ADD resources/php/www.conf /etc/php/7.0/fpm/pool.d/www.conf
-
-#install composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php -r "if (hash_file('SHA384', 'composer-setup.php') === 'e115a8dc7871f15d853148a7fbac7da27d6c0030b848d9b3dc09e2a0388afed865e6a3d6b3c0fad45c48e2b5fc1196ae') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
-    && php composer-setup.php --install-dir=/bin \
-    && php -r "unlink('composer-setup.php');"
+#install supervisor
+RUN apt-get install -y supervisor
+ADD resources/supervisor/conf.d/nginx.conf /etc/supervisor/conf.d/nginx.conf
+ADD resources/supervisor/conf.d/php.conf /etc/supervisor/conf.d/php.conf
 
 #create user system
 RUN groupadd -f -g 1000 user \
 	&& useradd -m -g user -u 1000 user
 
 EXPOSE 80
+
+CMD  ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

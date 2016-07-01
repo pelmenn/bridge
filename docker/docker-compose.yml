@@ -5,4 +5,3 @@ bridge:
     - 80:80
   volumes:
     - /var/www/bridge:/var/www/bridge
-  tty: true
